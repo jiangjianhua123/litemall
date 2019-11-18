@@ -161,7 +161,7 @@ export function cartFastAdd(data) {
 const CartUpdate='wx/cart/update'; // 更新购物车的商品
 export function cartUpdate(data) {
   return request({
-    url: cartUpdate,
+    url: CartUpdate,
     method: 'post',
     data
   })
@@ -299,6 +299,14 @@ export function orderPrepay(data) {
     method: 'post',
     data
   })
+}
+const OrderH5pay = 'wx/order/h5pay'; // h5支付
+export function orderH5pay(data) {
+  return request({
+    url: OrderH5pay,
+    method: 'post',
+    data
+  });
 }
 export const OrderList='wx/order/list'; //订单列表
 export function orderList(query) {
