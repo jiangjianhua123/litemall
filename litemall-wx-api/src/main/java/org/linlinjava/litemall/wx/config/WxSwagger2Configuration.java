@@ -25,20 +25,20 @@ public class WxSwagger2Configuration {
     public Docket wxDocket() {
 
         return new Docket(DocumentationType.SWAGGER_2)
-                .groupName("wx")
+                .groupName("mall")
                 .apiInfo(wxApiInfo())
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("org.linlinjava.litemall.wx.web"))
+                .apis(RequestHandlerSelectors.basePackage("org.linlinjava.litemall.wx"))
                 .paths(PathSelectors.any())
                 .build();
     }
 
     private ApiInfo wxApiInfo() {
         return new ApiInfoBuilder()
-                .title("litemall-wx API")
-                .description("litemall小商场API")
-                .termsOfServiceUrl("https://github.com/linlinjava/litemall")
-                .contact("https://github.com/linlinjava/litemall")
+                .title("API")
+                .description("MallAPI")
+//                .termsOfServiceUrl("https://github.com/linlinjava/litemall")
+//                .contact("https://github.com/linlinjava/litemall")
                 .version("1.0")
                 .build();
     }

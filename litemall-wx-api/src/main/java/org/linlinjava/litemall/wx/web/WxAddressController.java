@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.util.RegexUtil;
@@ -8,7 +9,7 @@ import org.linlinjava.litemall.db.domain.LitemallAddress;
 import org.linlinjava.litemall.db.service.LitemallAddressService;
 import org.linlinjava.litemall.db.service.LitemallRegionService;
 import org.linlinjava.litemall.wx.annotation.LoginUser;
-import org.linlinjava.litemall.wx.service.GetRegionService;
+import org.linlinjava.litemall.wx.web.api.WxAddressApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -23,7 +24,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/wx/address")
 @Validated
-public class WxAddressController extends GetRegionService {
+@Api(tags = "用户收货地址服务")
+public class WxAddressController implements WxAddressApi {
 	private final Log logger = LogFactory.getLog(WxAddressController.class);
 
 	@Autowired
@@ -39,6 +41,7 @@ public class WxAddressController extends GetRegionService {
 	 * @param userId 用户ID
 	 * @return 收货地址列表
 	 */
+	@Override
 	@GetMapping("list")
 	public Object list(@LoginUser Integer userId) {
 		if (userId == null) {
@@ -55,6 +58,7 @@ public class WxAddressController extends GetRegionService {
 	 * @param id     收货地址ID
 	 * @return 收货地址详情
 	 */
+	@Override
 	@GetMapping("detail")
 	public Object detail(@LoginUser Integer userId, @NotNull Integer id) {
 		if (userId == null) {
@@ -123,6 +127,7 @@ public class WxAddressController extends GetRegionService {
 	 * @param address 用户收货地址
 	 * @return 添加或更新操作结果
 	 */
+	@Override
 	@PostMapping("save")
 	public Object save(@LoginUser Integer userId, @RequestBody LitemallAddress address) {
 		if (userId == null) {
@@ -158,6 +163,7 @@ public class WxAddressController extends GetRegionService {
 	 * @param address 用户收货地址，{ id: xxx }
 	 * @return 删除操作结果
 	 */
+	@Override
 	@PostMapping("delete")
 	public Object delete(@LoginUser Integer userId, @RequestBody LitemallAddress address) {
 		if (userId == null) {

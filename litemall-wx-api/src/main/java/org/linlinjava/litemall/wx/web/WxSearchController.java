@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.util.ResponseUtil;
@@ -26,6 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/wx/search")
 @Validated
+@Api(tags = "商品搜索服务接口")
 public class WxSearchController {
     private final Log logger = LogFactory.getLog(WxSearchController.class);
 

@@ -1,4 +1,11 @@
 litemall:
+  #PayPal环境配置
+  paypal:
+    client-id: AR8ymo-iDm3LUQz6ORAfn5joX7DXJRwzmuykUHUgAHG-YlLL-9xadJvURfMhFKd3EGZRJIV0895YSRUT
+    secret: EHW8cwWGvcL6tHP1VhMqH63CuB07kjo7x3xjAevkajx1h4SFInSLthYtEPNaYGZhcY_8PSD3J9rmHWyW
+    cancel-url: http://localhost:9000/order/success
+    success-url: http://localhost:9000/order/success
+    env: sandbox #live 正式环境 sandbox 沙箱
   # 开发者应该设置成自己的wx相关信息
   wx:
     app-id: wxa5b486c6b918ecfb

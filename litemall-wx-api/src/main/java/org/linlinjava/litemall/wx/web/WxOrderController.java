@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.validator.Order;
@@ -17,6 +18,7 @@ import javax.validation.constraints.NotNull;
 @RestController
 @RequestMapping("/wx/order")
 @Validated
+@Api(tags = "订单服务")
 public class WxOrderController {
     private final Log logger = LogFactory.getLog(WxOrderController.class);
 
@@ -29,7 +31,7 @@ public class WxOrderController {
      * @param userId   用户ID
      * @param showType 订单信息
      * @param page     分页页数
-     * @param limit     分页大小
+     * @param limit    分页大小
      * @return 订单列表
      */
     @GetMapping("list")
@@ -86,12 +88,39 @@ public class WxOrderController {
      * @return 支付订单ID
      */
     @PostMapping("prepay")
-    public Object prepay(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
+    public Object prepfay(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
         return wxOrderService.prepay(userId, body, request);
     }
 
+
+    /**
+     * paypal支付
+     *
+     * @param userId
+     * @param body
+     * @param request
+     * @return
+     */
+    @PostMapping("paypal-pay")
+    public Object paypalpay(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
+        return wxOrderService.payPalPay(userId, body, request);
+    }
+
+    @GetMapping("payPalSuccess")
+    public Object payPalSuccess(String token, String PayerID) {
+        return wxOrderService.payPalSuccess(token, PayerID);
+    }
+
+
+    @GetMapping("payPalCancel")
+    public Object payPalCancel(String token, String PayerID) {
+        return wxOrderService.payPalCancel(token, PayerID);
+    }
+
+
     /**
      * 微信H5支付
+     *
      * @param userId
      * @param body
      * @param request
@@ -105,10 +134,10 @@ public class WxOrderController {
     /**
      * 微信付款成功或失败回调接口
      * <p>
-     *  TODO
-     *  注意，这里pay-notify是示例地址，建议开发者应该设立一个隐蔽的回调地址
+     * TODO
+     * 注意，这里pay-notify是示例地址，建议开发者应该设立一个隐蔽的回调地址
      *
-     * @param request 请求内容
+     * @param request  请求内容
      * @param response 响应内容
      * @return 操作结果
      */

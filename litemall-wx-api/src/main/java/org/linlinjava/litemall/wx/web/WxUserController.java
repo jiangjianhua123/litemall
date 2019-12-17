@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.util.ResponseUtil;
@@ -20,6 +21,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/wx/user")
 @Validated
+@Api(tags = "用户服务接口")
 public class WxUserController {
     private final Log logger = LogFactory.getLog(WxUserController.class);
 

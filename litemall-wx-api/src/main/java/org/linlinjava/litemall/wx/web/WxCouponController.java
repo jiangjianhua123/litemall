@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.util.JacksonUtil;
@@ -33,6 +34,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/wx/coupon")
 @Validated
+@Api(tags = "优惠券服务")
 public class WxCouponController {
     private final Log logger = LogFactory.getLog(WxCouponController.class);
 

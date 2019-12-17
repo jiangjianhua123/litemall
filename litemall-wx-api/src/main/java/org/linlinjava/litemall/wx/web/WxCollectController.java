@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -28,6 +29,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/wx/collect")
 @Validated
+@Api(tags = "用户收藏服务")
 public class WxCollectController {
     private final Log logger = LogFactory.getLog(WxCollectController.class);
 

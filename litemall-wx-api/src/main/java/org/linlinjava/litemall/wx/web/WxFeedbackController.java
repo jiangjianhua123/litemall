@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/wx/feedback")
 @Validated
+@Api(tags = "意见反馈服务")
 public class WxFeedbackController {
     private final Log logger = LogFactory.getLog(WxFeedbackController.class);
 

@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.express.ExpressService;
@@ -36,6 +37,7 @@ import static org.linlinjava.litemall.wx.util.WxResponseCode.*;
 @RestController
 @RequestMapping("/wx/groupon")
 @Validated
+@Api(tags = "团购服务")
 public class WxGrouponController {
     private final Log logger = LogFactory.getLog(WxGrouponController.class);
 

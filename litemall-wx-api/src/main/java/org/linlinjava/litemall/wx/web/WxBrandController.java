@@ -1,5 +1,7 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiModel;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.util.ResponseUtil;
@@ -25,7 +27,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/wx/brand")
 @Validated
-public class WxBrandController {
+@Api(tags = "专题服务")
+public class WxBrandController implements org.linlinjava.litemall.wx.web.api.WxBrandApi {
     private final Log logger = LogFactory.getLog(WxBrandController.class);
 
     @Autowired
@@ -38,6 +41,7 @@ public class WxBrandController {
      * @param limit 分页大小
      * @return 品牌列表
      */
+    @Override
     @GetMapping("list")
     public Object list(@RequestParam(defaultValue = "1") Integer page,
                        @RequestParam(defaultValue = "10") Integer limit,
@@ -53,6 +57,7 @@ public class WxBrandController {
      * @param id 品牌ID
      * @return 品牌详情
      */
+    @Override
     @GetMapping("detail")
     public Object detail(@NotNull Integer id) {
         LitemallBrand entity = brandService.findById(id);

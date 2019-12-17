@@ -40,9 +40,9 @@ public class LitemallOrderService {
     public LitemallOrder findById(Integer orderId) {
         return litemallOrderMapper.selectByPrimaryKey(orderId);
     }
+    String base = "0123456789";
 
     private String getRandomNum(Integer num) {
-        String base = "0123456789";
         Random random = new Random();
         StringBuffer sb = new StringBuffer();
         for (int i = 0; i < num; i++) {

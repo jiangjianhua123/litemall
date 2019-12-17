@@ -2,6 +2,7 @@ package org.linlinjava.litemall.wx.web;
 
 import com.github.pagehelper.PageInfo;
 import com.mysql.jdbc.StringUtils;
+import io.swagger.annotations.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.system.SystemConfig;
@@ -31,6 +32,7 @@ import java.util.concurrent.*;
 @RestController
 @RequestMapping("/wx/goods")
 @Validated
+@Api(tags = "商品服务")
 public class WxGoodsController {
 	private final Log logger = LogFactory.getLog(WxGoodsController.class);
 

@@ -9,9 +9,14 @@ import com.github.binarywang.wxpay.bean.result.BaseWxPayResult;
 import com.github.binarywang.wxpay.constant.WxPayConstants;
 import com.github.binarywang.wxpay.exception.WxPayException;
 import com.github.binarywang.wxpay.service.WxPayService;
+import com.paypal.http.HttpResponse;
+import com.paypal.http.serializer.Json;
+import com.paypal.orders.*;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.json.JSONObject;
+import org.linlinjava.litemall.core.config.PayPalConfig;
 import org.linlinjava.litemall.core.express.ExpressService;
 import org.linlinjava.litemall.core.express.dao.ExpressInfo;
 import org.linlinjava.litemall.core.notify.NotifyService;
@@ -110,6 +115,9 @@ public class WxOrderService {
     @Autowired
     private TaskService taskService;
 
+    @Autowired
+    private PayPalConfig payPalConfig;
+
     /**
      * 订单列表
      *
@@ -121,7 +129,7 @@ public class WxOrderService {
      *                 3，待收货；
      *                 4，待评价。
      * @param page     分页页数
-     * @param limit     分页大小
+     * @param limit    分页大小
      * @return 订单列表
      */
     public Object list(Integer userId, Integer showType, Integer page, Integer limit, String sort, String order) {
@@ -157,7 +165,7 @@ public class WxOrderService {
                 orderGoodsVo.put("number", orderGoods.getNumber());
                 orderGoodsVo.put("picUrl", orderGoods.getPicUrl());
                 orderGoodsVo.put("specifications", orderGoods.getSpecifications());
-                orderGoodsVo.put("price",orderGoods.getPrice());
+                orderGoodsVo.put("price", orderGoods.getPrice());
                 orderGoodsVoList.add(orderGoodsVo);
             }
             orderVo.put("goodsList", orderGoodsVoList);
@@ -411,7 +419,6 @@ public class WxOrderService {
             groupon.setPayed(false);
             groupon.setUserId(userId);
             groupon.setRulesId(grouponRulesId);
-
             //参与者
             if (grouponLinkId != null && grouponLinkId > 0) {
                 //参与的团购记录
@@ -423,7 +430,6 @@ public class WxOrderService {
                 groupon.setCreatorUserId(userId);
                 groupon.setGrouponId(0);
             }
-
             grouponService.createGroupon(groupon);
         }
 
@@ -571,6 +577,7 @@ public class WxOrderService {
         return ResponseUtil.ok(result);
     }
 
+
     /**
      * 微信H5支付
      *
@@ -625,6 +632,89 @@ public class WxOrderService {
         return ResponseUtil.ok(result);
     }
 
+
+    /**
+     * PayPa支付
+     *
+     * @param userId
+     * @param body
+     * @param request
+     * @return
+     */
+    @Transactional
+    public Object payPalPay(Integer userId, String body, HttpServletRequest request) {
+        if (userId == null) {
+            return ResponseUtil.unlogin();
+        }
+        Integer orderId = JacksonUtil.parseInteger(body, "orderId");
+        if (orderId == null) {
+            return ResponseUtil.badArgument();
+        }
+
+        LitemallOrder order = orderService.findById(orderId);
+        if (order == null) {
+            return ResponseUtil.badArgumentValue();
+        }
+        if (!order.getUserId().equals(userId)) {
+            return ResponseUtil.badArgumentValue();
+        }
+
+        // 检测是否能够取消
+        OrderHandleOption handleOption = OrderUtil.build(order);
+        if (!handleOption.isPay()) {
+            return ResponseUtil.fail(ORDER_INVALID_OPERATION, "订单不能支付");
+        }
+        //创建PayPal订单
+        HttpResponse<Order> response = null;
+        try {
+            OrdersCreateRequest ordersCreateRequest = new OrdersCreateRequest();
+            ordersCreateRequest.header("prefer", "return=representation");
+            //
+            List<PurchaseUnitRequest> purchaseUnitRequests = new ArrayList<>();
+            PurchaseUnitRequest purchaseUnitRequest = new PurchaseUnitRequest().description("Sporting Goods").customId(order.getOrderSn())
+                    .amountWithBreakdown(new AmountWithBreakdown().currencyCode("USD").value(order.getActualPrice().toString()))
+                    .shippingDetail(new ShippingDetail().name(new Name().fullName((order.getConsignee()))).addressPortable(new AddressPortable().addressLine1(order.getAddress())));
+            purchaseUnitRequests.add(purchaseUnitRequest);
+
+            ordersCreateRequest.requestBody(buildMinimumRequestBody(purchaseUnitRequests));
+            response = payPalConfig.client().execute(ordersCreateRequest);
+            if (response.statusCode() == 201) {
+                logger.debug("Status Code: " + response.statusCode());
+                logger.debug("Status: " + response.result().status());
+                logger.debug("Order ID: " + response.result().id());
+                logger.debug("Intent: " + response.result().checkoutPaymentIntent());
+                logger.debug("Links: ");
+                for (LinkDescription link : response.result().links()) {
+                    logger.debug("\t" + link.rel() + ": " + link.href() + "\tCall Type: " + link.method());
+                }
+                logger.debug("Total Amount: " + response.result().purchaseUnits().get(0).amountWithBreakdown().currencyCode()
+                        + " " + response.result().purchaseUnits().get(0).amountWithBreakdown().value());
+                logger.debug("Full response body:");
+                logger.debug(new JSONObject(new Json().serialize(response.result())).toString(4));
+                return ResponseUtil.ok(response);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            return ResponseUtil.fail(ORDER_PAY_FAIL, "订单不能支付");
+        }
+    }
+
+    /**
+     * Method to create minimum required order body with <b>AUTHORIZE</b> intent
+     *
+     * @return OrderRequest with created order request
+     */
+    private OrderRequest buildMinimumRequestBody(List<PurchaseUnitRequest> purchaseUnitRequests) {
+        OrderRequest orderRequest = new OrderRequest();
+        orderRequest.checkoutPaymentIntent("CAPTURE");
+        orderRequest.applicationContext(payPalConfig.context());
+
+        orderRequest.purchaseUnits(purchaseUnitRequests);
+        return orderRequest;
+    }
+
+
     /**
      * 微信付款成功或失败回调接口
      * <p>
@@ -650,11 +740,11 @@ public class WxOrderService {
         try {
             result = wxPayService.parseOrderNotifyResult(xmlResult);
 
-            if(!WxPayConstants.ResultCode.SUCCESS.equals(result.getResultCode())){
+            if (!WxPayConstants.ResultCode.SUCCESS.equals(result.getResultCode())) {
                 logger.error(xmlResult);
                 throw new WxPayException("微信通知支付失败！");
             }
-            if(!WxPayConstants.ResultCode.SUCCESS.equals(result.getReturnCode())){
+            if (!WxPayConstants.ResultCode.SUCCESS.equals(result.getReturnCode())) {
                 logger.error(xmlResult);
                 throw new WxPayException("微信通知支付失败！");
             }
@@ -1012,4 +1102,22 @@ public class WxOrderService {
         return ResponseUtil.ok();
     }
 
+
+    public Object payPalSuccess(String token, String payerID) {
+        OrdersCaptureRequest request = new OrdersCaptureRequest(token);
+        HttpResponse<Order> response = null;
+        try {
+            response = payPalConfig.client().execute(request);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(response.statusCode() == 201){
+            return ResponseUtil.ok();
+        }
+        return ResponseUtil.fail();
+    }
+
+    public Object payPalCancel(String token, String payerID) {
+        return ResponseUtil.ok();
+    }
 }

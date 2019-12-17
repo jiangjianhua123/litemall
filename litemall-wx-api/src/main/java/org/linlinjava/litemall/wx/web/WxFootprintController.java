@@ -1,6 +1,7 @@
 package org.linlinjava.litemall.wx.web;
 
 import com.github.pagehelper.PageInfo;
+import io.swagger.annotations.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.util.JacksonUtil;
@@ -26,6 +27,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/wx/footprint")
 @Validated
+@Api(tags = "用户访问足迹服务")
 public class WxFootprintController {
     private final Log logger = LogFactory.getLog(WxFootprintController.class);
 

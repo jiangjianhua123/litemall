@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.util.ResponseUtil;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/wx/formid")
 @Validated
+//@Api("formid")
 public class WxUserFormId {
     private final Log logger = LogFactory.getLog(WxUserFormId.class);
 

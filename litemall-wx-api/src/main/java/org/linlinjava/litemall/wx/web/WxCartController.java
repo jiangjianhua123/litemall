@@ -1,5 +1,7 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -26,6 +28,7 @@ import static org.linlinjava.litemall.wx.util.WxResponseCode.GOODS_UNSHELVE;
 @RestController
 @RequestMapping("/wx/cart")
 @Validated
+@Api(tags = "用户购物车")
 public class WxCartController {
     private final Log logger = LogFactory.getLog(WxCartController.class);
 
@@ -53,6 +56,7 @@ public class WxCartController {
      * @return 用户购物车信息
      */
     @GetMapping("index")
+    @ApiOperation(value = "用户购物车信息")
     public Object index(@LoginUser Integer userId) {
         if (userId == null) {
             return ResponseUtil.unlogin();

@@ -3,6 +3,7 @@ package org.linlinjava.litemall.wx.web;
 import cn.binarywang.wx.miniapp.api.WxMaService;
 import cn.binarywang.wx.miniapp.bean.WxMaJscode2SessionResult;
 import cn.binarywang.wx.miniapp.bean.WxMaPhoneNumberInfo;
+import io.swagger.annotations.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.notify.NotifyService;
@@ -17,11 +18,11 @@ import org.linlinjava.litemall.db.service.CouponAssignService;
 import org.linlinjava.litemall.db.service.LitemallUserService;
 import org.linlinjava.litemall.wx.annotation.LoginUser;
 import org.linlinjava.litemall.wx.dto.UserInfo;
-import org.linlinjava.litemall.wx.dto.UserToken;
 import org.linlinjava.litemall.wx.dto.WxLoginInfo;
 import org.linlinjava.litemall.wx.service.CaptchaCodeManager;
 import org.linlinjava.litemall.wx.service.UserTokenManager;
 import org.linlinjava.litemall.core.util.IpUtil;
+import org.linlinjava.litemall.wx.web.api.WxAuthApi;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -41,7 +42,8 @@ import static org.linlinjava.litemall.wx.util.WxResponseCode.*;
 @RestController
 @RequestMapping("/wx/auth")
 @Validated
-public class WxAuthController {
+@Api(tags = "鉴权服务")
+public class WxAuthController implements WxAuthApi {
     private final Log logger = LogFactory.getLog(WxAuthController.class);
 
     @Autowired
@@ -63,6 +65,7 @@ public class WxAuthController {
      * @param request 请求对象
      * @return 登录结果
      */
+    @Override
     @PostMapping("login")
     public Object login(@RequestBody String body, HttpServletRequest request) {
         String username = JacksonUtil.parseString(body, "username");
@@ -114,6 +117,7 @@ public class WxAuthController {
      * @param request     请求对象
      * @return 登录结果
      */
+    @Override
     @PostMapping("login_by_weixin")
     public Object loginByWeixin(@RequestBody WxLoginInfo wxLoginInfo, HttpServletRequest request) {
         String code = wxLoginInfo.getCode();
@@ -183,6 +187,7 @@ public class WxAuthController {
      * @param body 手机号码 { mobile }
      * @return
      */
+    @Override
     @PostMapping("regCaptcha")
     public Object registerCaptcha(@RequestBody String body) {
         String phoneNumber = JacksonUtil.parseString(body, "mobile");
@@ -233,6 +238,7 @@ public class WxAuthController {
      * }
      * 失败则 { errno: XXX, errmsg: XXX }
      */
+    @Override
     @PostMapping("register")
     public Object register(@RequestBody String body, HttpServletRequest request) {
         String username = JacksonUtil.parseString(body, "username");
@@ -335,6 +341,7 @@ public class WxAuthController {
      * @param body 手机号码 { mobile: xxx, type: xxx }
      * @return
      */
+    @Override
     @PostMapping("captcha")
     public Object captcha(@LoginUser Integer userId, @RequestBody String body) {
         if(userId == null){
@@ -383,6 +390,7 @@ public class WxAuthController {
      * 成功则 { errno: 0, errmsg: '成功' }
      * 失败则 { errno: XXX, errmsg: XXX }
      */
+    @Override
     @PostMapping("reset")
     public Object reset(@RequestBody String body, HttpServletRequest request) {
         String password = JacksonUtil.parseString(body, "password");
@@ -434,6 +442,7 @@ public class WxAuthController {
      * 成功则 { errno: 0, errmsg: '成功' }
      * 失败则 { errno: XXX, errmsg: XXX }
      */
+    @Override
     @PostMapping("resetPhone")
     public Object resetPhone(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
         if(userId == null){
@@ -487,6 +496,7 @@ public class WxAuthController {
      * 成功则 { errno: 0, errmsg: '成功' }
      * 失败则 { errno: XXX, errmsg: XXX }
      */
+    @Override
     @PostMapping("profile")
     public Object profile(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
         if(userId == null){
@@ -521,6 +531,7 @@ public class WxAuthController {
      * @param body
      * @return
      */
+    @Override
     @PostMapping("bindPhone")
     public Object bindPhone(@LoginUser Integer userId, @RequestBody String body) {
     	if (userId == null) {
@@ -538,6 +549,7 @@ public class WxAuthController {
         return ResponseUtil.ok();
     }
 
+    @Override
     @PostMapping("logout")
     public Object logout(@LoginUser Integer userId) {
         if (userId == null) {
@@ -546,6 +558,7 @@ public class WxAuthController {
         return ResponseUtil.ok();
     }
 
+    @Override
     @GetMapping("info")
     public Object info(@LoginUser Integer userId) {
         if (userId == null) {

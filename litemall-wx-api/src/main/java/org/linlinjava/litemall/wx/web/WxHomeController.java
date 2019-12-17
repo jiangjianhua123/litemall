@@ -1,5 +1,6 @@
 package org.linlinjava.litemall.wx.web;
 
+import io.swagger.annotations.Api;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.system.SystemConfig;
@@ -29,6 +30,7 @@ import java.util.concurrent.*;
 @RestController
 @RequestMapping("/wx/home")
 @Validated
+@Api(tags = "首页服务接口")
 public class WxHomeController {
     private final Log logger = LogFactory.getLog(WxHomeController.class);
 
