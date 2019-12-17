@@ -94,7 +94,7 @@ public class WxGrouponController {
             return ResponseUtil.badArgumentValue();
         }
 
-        LitemallGrouponRules rules = rulesService.queryById(groupon.getRulesId());
+        LitemallGrouponRules rules = rulesService.findById(groupon.getRulesId());
         if (rules == null) {
             return ResponseUtil.badArgumentValue();
         }
@@ -188,7 +188,7 @@ public class WxGrouponController {
             return ResponseUtil.badArgumentValue();
         }
 
-        LitemallGrouponRules rules = rulesService.queryById(groupon.getRulesId());
+        LitemallGrouponRules rules = rulesService.findById(groupon.getRulesId());
         if (rules == null) {
             return ResponseUtil.badArgumentValue();
         }
@@ -232,7 +232,7 @@ public class WxGrouponController {
         LitemallUser creator;
         for (LitemallGroupon groupon : myGroupons) {
             order = orderService.findById(groupon.getOrderId());
-            rules = rulesService.queryById(groupon.getRulesId());
+            rules = rulesService.findById(groupon.getRulesId());
             creator = userService.findById(groupon.getCreatorUserId());
 
             Map<String, Object> grouponVo = new HashMap<>();
@@ -259,7 +259,6 @@ public class WxGrouponController {
             grouponVo.put("orderSn", order.getOrderSn());
             grouponVo.put("actualPrice", order.getActualPrice());
             grouponVo.put("orderStatusText", OrderUtil.orderStatusText(order));
-            grouponVo.put("handleOption", OrderUtil.build(order));
 
             List<LitemallOrderGoods> orderGoodsList = orderGoodsService.queryByOid(order.getId());
             List<Map<String, Object>> orderGoodsVoList = new ArrayList<>(orderGoodsList.size());
@@ -276,8 +275,8 @@ public class WxGrouponController {
         }
 
         Map<String, Object> result = new HashMap<>();
-        result.put("count", grouponVoList.size());
-        result.put("data", grouponVoList);
+        result.put("total", grouponVoList.size());
+        result.put("list", grouponVoList);
 
         return ResponseUtil.ok(result);
     }
