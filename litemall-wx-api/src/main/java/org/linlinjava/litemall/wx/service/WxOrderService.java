@@ -731,13 +731,13 @@ public class WxOrderService {
                         + " " + response.result().purchaseUnits().get(0).amountWithBreakdown().value());
                 logger.debug("Full response body:");
                 logger.debug(new JSONObject(new Json().serialize(response.result())).toString(4));
-                return ResponseUtil.ok(response);
+                logger.debug(ResponseUtil.ok(new Json().serialize(response.result())).toString());
+                return ResponseUtil.ok(new Json().serialize(response.result()));
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            return ResponseUtil.fail(ORDER_PAY_FAIL, "订单不能支付");
         }
+        return ResponseUtil.fail(ORDER_PAY_FAIL, "订单不能支付");
     }
 
     /**
