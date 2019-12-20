@@ -101,7 +101,7 @@ public class WxOrderController {
      * @param request
      * @return
      */
-    @PostMapping("paypal-pay")
+    @PostMapping("payPalPay")
     public Object paypalpay(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
         return wxOrderService.payPalPay(userId, body, request);
     }

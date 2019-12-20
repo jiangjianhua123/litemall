@@ -25,6 +25,7 @@ import org.linlinjava.litemall.core.qcode.QCodeService;
 import org.linlinjava.litemall.core.system.SystemConfig;
 import org.linlinjava.litemall.core.task.TaskService;
 import org.linlinjava.litemall.core.util.DateTimeUtil;
+import org.linlinjava.litemall.core.util.IpUtil;
 import org.linlinjava.litemall.core.util.JacksonUtil;
 import org.linlinjava.litemall.core.util.ResponseUtil;
 import org.linlinjava.litemall.db.domain.*;
@@ -33,7 +34,6 @@ import org.linlinjava.litemall.db.util.CouponUserConstant;
 import org.linlinjava.litemall.db.util.GrouponConstant;
 import org.linlinjava.litemall.db.util.OrderHandleOption;
 import org.linlinjava.litemall.db.util.OrderUtil;
-import org.linlinjava.litemall.core.util.IpUtil;
 import org.linlinjava.litemall.wx.task.OrderUnpaidTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -130,7 +130,7 @@ public class WxOrderService {
      *                 3，待收货；
      *                 4，待评价。
      * @param page     分页页数
-     * @param limit     分页大小
+     * @param limit    分页大小
      * @return 订单列表
      */
     public Object list(Integer userId, Integer showType, Integer page, Integer limit, String sort, String order) {
@@ -166,7 +166,7 @@ public class WxOrderService {
                 orderGoodsVo.put("number", orderGoods.getNumber());
                 orderGoodsVo.put("picUrl", orderGoods.getPicUrl());
                 orderGoodsVo.put("specifications", orderGoods.getSpecifications());
-                orderGoodsVo.put("price",orderGoods.getPrice());
+                orderGoodsVo.put("price", orderGoods.getPrice());
                 orderGoodsVoList.add(orderGoodsVo);
             }
             orderVo.put("goodsList", orderGoodsVoList);
@@ -224,14 +224,12 @@ public class WxOrderService {
         //"YTO", "800669400640887922"
         if (order.getOrderStatus().equals(OrderUtil.STATUS_SHIP)) {
             ExpressInfo ei = expressService.getExpressInfo(order.getShipChannel(), order.getShipSn());
-            if(ei == null){
+            if (ei == null) {
                 result.put("expressInfo", new ArrayList<>());
-            }
-            else {
+            } else {
                 result.put("expressInfo", ei);
             }
-        }
-        else{
+        } else {
             result.put("expressInfo", new ArrayList<>());
         }
 
@@ -286,19 +284,19 @@ public class WxOrderService {
 
             if (grouponLinkId != null && grouponLinkId > 0) {
                 //团购人数已满
-                if(grouponService.countGroupon(grouponLinkId) >= (rules.getDiscountMember() - 1)){
+                if (grouponService.countGroupon(grouponLinkId) >= (rules.getDiscountMember() - 1)) {
                     return ResponseUtil.fail(GROUPON_FULL, "团购活动人数已满!");
                 }
                 // NOTE
                 // 这里业务方面允许用户多次开团，以及多次参团，
                 // 但是会限制以下两点：
                 // （1）不允许参加已经加入的团购
-                if(grouponService.hasJoin(userId, grouponLinkId)){
+                if (grouponService.hasJoin(userId, grouponLinkId)) {
                     return ResponseUtil.fail(GROUPON_JOIN, "团购活动已经参加!");
                 }
                 // （2）不允许参加自己开团的团购
                 LitemallGroupon groupon = grouponService.queryById(grouponLinkId);
-                if(groupon.getCreatorUserId().equals(userId)){
+                if (groupon.getCreatorUserId().equals(userId)) {
                     return ResponseUtil.fail(GROUPON_JOIN, "团购活动已经参加!");
                 }
             }
@@ -476,8 +474,7 @@ public class WxOrderService {
         data.put("orderId", orderId);
         if (grouponRulesId != null && grouponRulesId > 0) {
             data.put("grouponLinkId", grouponLinkId);
-        }
-        else {
+        } else {
             data.put("grouponLinkId", 0);
         }
         return ResponseUtil.ok(data);
@@ -708,12 +705,11 @@ public class WxOrderService {
         HttpResponse<Order> response = null;
         try {
             OrdersCreateRequest ordersCreateRequest = new OrdersCreateRequest();
-            ordersCreateRequest.header("prefer", "return=representation");
-            //
+//            ordersCreateRequest.header("prefer", "return=representation");
             List<PurchaseUnitRequest> purchaseUnitRequests = new ArrayList<>();
             PurchaseUnitRequest purchaseUnitRequest = new PurchaseUnitRequest().description("Sporting Goods").customId(order.getOrderSn())
                     .amountWithBreakdown(new AmountWithBreakdown().currencyCode("USD").value(order.getActualPrice().toString()))
-                    .shippingDetail(new ShippingDetail().name(new Name().fullName((order.getConsignee()))).addressPortable(new AddressPortable().addressLine1(order.getAddress())));
+                    .shippingDetail(new ShippingDetail().name(new Name().fullName((order.getConsignee()))).addressPortable(new AddressPortable().addressLine1(order.getAddress()).countryCode("C2")));
             purchaseUnitRequests.add(purchaseUnitRequest);
 
             ordersCreateRequest.requestBody(buildMinimumRequestBody(purchaseUnitRequests));
@@ -780,11 +776,11 @@ public class WxOrderService {
         try {
             result = wxPayService.parseOrderNotifyResult(xmlResult);
 
-            if(!WxPayConstants.ResultCode.SUCCESS.equals(result.getResultCode())){
+            if (!WxPayConstants.ResultCode.SUCCESS.equals(result.getResultCode())) {
                 logger.error(xmlResult);
                 throw new WxPayException("微信通知支付失败！");
             }
-            if(!WxPayConstants.ResultCode.SUCCESS.equals(result.getReturnCode())){
+            if (!WxPayConstants.ResultCode.SUCCESS.equals(result.getReturnCode())) {
                 logger.error(xmlResult);
                 throw new WxPayException("微信通知支付失败！");
             }
@@ -1127,14 +1123,123 @@ public class WxOrderService {
 
     public Object payPalSuccess(String token, String payerID) {
         OrdersCaptureRequest request = new OrdersCaptureRequest(token);
+        request.header("prefer", "return=representation");
         HttpResponse<Order> response = null;
+        boolean payIsError = false;
+        String errorMessage = null;
         try {
             response = payPalConfig.client().execute(request);
+            if (response.statusCode() == 201) {
+                for (PurchaseUnit purchaseUnit : response.result().purchaseUnits()) {
+
+                    String orderSn = purchaseUnit.customId();
+                    String payId = response.result().id();
+
+                    LitemallOrder order = orderService.findBySn(orderSn);
+                    if (order == null) {
+                        errorMessage = "订单不存在 sn=" + orderSn;
+                        payIsError = true;
+                    }
+
+                    // 检查这个订单是否已经处理过
+                    if (OrderUtil.hasPayed(order)) {
+                        errorMessage = "订单sn=" + orderSn + "已经处理成功";
+                        payIsError = true;
+                    }
+
+                    // 检查支付订单金额
+                    if (!purchaseUnit.payments().captures().get(0).amount().value().equals(order.getActualPrice().toString())) {
+                        errorMessage = "订单sn=" + orderSn + "支付金额不符合";
+                        payIsError = true;
+                    }
+
+                    if (payIsError) {
+                        OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(purchaseUnit.payments().captures().get(0).id());
+                        payPalConfig.client().execute(ordersCaptureRequest);
+                        return ResponseUtil.fail(40001, errorMessage);
+                    }
+
+                    order.setPayId(payId);
+                    order.setPayTime(LocalDateTime.now());
+                    order.setOrderStatus(OrderUtil.STATUS_PAY);
+                    if (orderService.updateWithOptimisticLocker(order) == 0) {
+                        // 这里可能存在这样一个问题，用户支付和系统自动取消订单发生在同时
+                        // 如果数据库首先因为系统自动取消订单而更新了订单状态；
+                        // 此时用户支付完成回调这里也要更新数据库，而由于乐观锁机制这里的更新会失败
+                        // 因此，这里会重新读取数据库检查状态是否是订单自动取消，如果是则更新成支付状态。
+                        order = orderService.findBySn(orderSn);
+                        int updated = 0;
+                        if (OrderUtil.isAutoCancelStatus(order)) {
+                            order.setPayId(payId);
+                            order.setPayTime(LocalDateTime.now());
+                            order.setOrderStatus(OrderUtil.STATUS_PAY);
+                            updated = orderService.updateWithOptimisticLocker(order);
+                        }
+
+                        // 如果updated是0，那么数据库更新失败
+                        if (updated == 0) {
+                            OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(purchaseUnit.payments().captures().get(0).id());
+                            payPalConfig.client().execute(ordersCaptureRequest);
+                            return ResponseUtil.fail(40001, "更新数据已失效");
+                        }
+                    }
+
+                    //  支付成功，有团购信息，更新团购信息
+                    LitemallGroupon groupon = grouponService.queryByOrderId(order.getId());
+                    if (groupon != null) {
+                        LitemallGrouponRules grouponRules = grouponRulesService.findById(groupon.getRulesId());
+
+                        //仅当发起者才创建分享图片
+                        if (groupon.getGrouponId() == 0) {
+                            String url = qCodeService.createGrouponShareImage(grouponRules.getGoodsName(), grouponRules.getPicUrl(), groupon);
+                            groupon.setShareUrl(url);
+                        }
+                        groupon.setStatus(GrouponConstant.STATUS_ON);
+                        if (grouponService.updateById(groupon) == 0) {
+                            OrdersCaptureRequest ordersCaptureRequest = new OrdersCaptureRequest(purchaseUnit.payments().captures().get(0).id());
+                            payPalConfig.client().execute(ordersCaptureRequest);
+                            return ResponseUtil.fail(40001, "更新数据已失效");
+                        }
+
+
+                        List<LitemallGroupon> grouponList = grouponService.queryJoinRecord(groupon.getGrouponId());
+                        if (groupon.getGrouponId() != 0 && (grouponList.size() >= grouponRules.getDiscountMember() - 1)) {
+                            for (LitemallGroupon grouponActivity : grouponList) {
+                                grouponActivity.setStatus(GrouponConstant.STATUS_SUCCEED);
+                                grouponService.updateById(grouponActivity);
+                            }
+
+                            LitemallGroupon grouponSource = grouponService.queryById(groupon.getGrouponId());
+                            grouponSource.setStatus(GrouponConstant.STATUS_SUCCEED);
+                            grouponService.updateById(grouponSource);
+                        }
+                    }
+
+//                    //TODO 发送邮件和短信通知，这里采用异步发送
+//                    // 订单支付成功以后，会发送短信给用户，以及发送邮件给管理员
+//                    notifyService.notifyMail("新订单通知", order.toString());
+//                    // 这里微信的短信平台对参数长度有限制，所以将订单号只截取后6位
+//                    notifyService.notifySmsTemplateSync(order.getMobile(), NotifyType.PAY_SUCCEED, new String[]{orderSn.substring(8, 14)});
+//
+//                    // 请依据自己的模版消息配置更改参数
+//                    String[] parms = new String[]{
+//                            order.getOrderSn(),
+//                            order.getOrderPrice().toString(),
+//                            DateTimeUtil.getDateTimeDisplayString(order.getAddTime()),
+//                            order.getConsignee(),
+//                            order.getMobile(),
+//                            order.getAddress()
+//                    };
+//
+//                    notifyService.notifyWxTemplate(result.getOpenid(), NotifyType.PAY_SUCCEED, parms, "pages/index/index?orderId=" + order.getId());
+
+                    // 取消订单超时未支付任务
+                    taskService.removeTask(new OrderUnpaidTask(order.getId()));
+                }
+                return ResponseUtil.ok("处理成功!");
+            }
         } catch (IOException e) {
             e.printStackTrace();
-        }
-        if(response.statusCode() == 201){
-            return ResponseUtil.ok();
         }
         return ResponseUtil.fail();
     }
