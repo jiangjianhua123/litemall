@@ -3,6 +3,7 @@ package org.linlinjava.litemall.wx.web.api;
 import io.swagger.annotations.Api;
 import org.linlinjava.litemall.wx.annotation.LoginUser;
 import org.linlinjava.litemall.wx.dto.WxLoginInfo;
+import org.linlinjava.litemall.wx.web.model.UserRegisterDTO;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,7 +21,7 @@ public interface WxAuthApi {
     Object registerCaptcha(@RequestBody String body);
 
     @PostMapping("register")
-    Object register(@RequestBody String body, HttpServletRequest request);
+    Object register(@RequestBody UserRegisterDTO userRegisterDTO, HttpServletRequest request);
 
     @PostMapping("captcha")
     Object captcha(@LoginUser Integer userId, @RequestBody String body);

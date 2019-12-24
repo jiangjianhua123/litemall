@@ -23,6 +23,7 @@ import org.linlinjava.litemall.wx.service.CaptchaCodeManager;
 import org.linlinjava.litemall.wx.service.UserTokenManager;
 import org.linlinjava.litemall.core.util.IpUtil;
 import org.linlinjava.litemall.wx.web.api.WxAuthApi;
+import org.linlinjava.litemall.wx.web.model.UserRegisterDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -215,14 +216,7 @@ public class WxAuthController implements WxAuthApi {
     /**
      * 账号注册
      *
-     * @param body    请求内容
-     *                {
-     *                username: xxx,
-     *                password: xxx,
-     *                mobile: xxx
-     *                code: xxx
-     *                }
-     *                其中code是手机验证码，目前还不支持手机短信验证码
+     * @param userRegisterDTO    请求内容
      * @param request 请求对象
      * @return 登录结果
      * 成功则
@@ -240,62 +234,37 @@ public class WxAuthController implements WxAuthApi {
      */
     @Override
     @PostMapping("register")
-    public Object register(@RequestBody String body, HttpServletRequest request) {
-        String username = JacksonUtil.parseString(body, "username");
-        String password = JacksonUtil.parseString(body, "password");
-        String mobile = JacksonUtil.parseString(body, "mobile");
-        String code = JacksonUtil.parseString(body, "code");
-        // 如果是小程序注册，则必须非空
-        // 其他情况，可以为空
-        String wxCode = JacksonUtil.parseString(body, "wxCode");
+    public Object register(@RequestBody UserRegisterDTO userRegisterDTO, HttpServletRequest request) {
+        String username = userRegisterDTO.getUsername();
+        String password = userRegisterDTO.getPassword();
+        String code = userRegisterDTO.getCode();
+        String email = userRegisterDTO.getEmail();
 
-        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password) || StringUtils.isEmpty(mobile)
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password) || StringUtils.isEmpty(email)
                 || StringUtils.isEmpty(code)) {
             return ResponseUtil.badArgument();
         }
 
         List<LitemallUser> userList = userService.queryByUsername(username);
         if (userList.size() > 0) {
-            return ResponseUtil.fail(AUTH_NAME_REGISTERED, "用户名已注册");
+            return ResponseUtil.fail(AUTH_NAME_REGISTERED, "account already exists");
         }
 
-        userList = userService.queryByMobile(mobile);
+
+        userList = userService.queryByEmail(email);
         if (userList.size() > 0) {
-            return ResponseUtil.fail(AUTH_MOBILE_REGISTERED, "手机号已注册");
+            return ResponseUtil.fail(AUTH_MOBILE_REGISTERED, "email already exists");
         }
-        if (!RegexUtil.isMobileExact(mobile)) {
-            return ResponseUtil.fail(AUTH_INVALID_MOBILE, "手机号格式不正确");
-        }
-        //判断验证码是否正确
-        String cacheCode = CaptchaCodeManager.getCachedCaptcha(mobile);
-        if (cacheCode == null || cacheCode.isEmpty() || !cacheCode.equals(code)) {
-            return ResponseUtil.fail(AUTH_CAPTCHA_UNMATCH, "验证码错误");
-        }
+//        if (!RegexUtil.isMobileExact(mobile)) {
+//            return ResponseUtil.fail(AUTH_INVALID_MOBILE, "手机号格式不正确");
+//        }
+//        //判断验证码是否正确
+//        String cacheCode = CaptchaCodeManager.getCachedCaptcha(mobile);
+//        if (cacheCode == null || cacheCode.isEmpty() || !cacheCode.equals(code)) {
+//            return ResponseUtil.fail(AUTH_CAPTCHA_UNMATCH, "验证码错误");
+//        }
 
-        String openId = "";
-        // 非空，则是小程序注册
-        // 继续验证openid
-        if(!StringUtils.isEmpty(wxCode)) {
-            try {
-                WxMaJscode2SessionResult result = this.wxService.getUserService().getSessionInfo(wxCode);
-                openId = result.getOpenid();
-            } catch (Exception e) {
-                e.printStackTrace();
-                return ResponseUtil.fail(AUTH_OPENID_UNACCESS, "openid 获取失败");
-            }
-            userList = userService.queryByOpenid(openId);
-            if (userList.size() > 1) {
-                return ResponseUtil.serious();
-            }
-            if (userList.size() == 1) {
-                LitemallUser checkUser = userList.get(0);
-                String checkUsername = checkUser.getUsername();
-                String checkPassword = checkUser.getPassword();
-                if (!checkUsername.equals(openId) || !checkPassword.equals(openId)) {
-                    return ResponseUtil.fail(AUTH_OPENID_BINDED, "openid已绑定账号");
-                }
-            }
-        }
+
 
         LitemallUser user = null;
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
@@ -303,8 +272,7 @@ public class WxAuthController implements WxAuthApi {
         user = new LitemallUser();
         user.setUsername(username);
         user.setPassword(encodedPassword);
-        user.setMobile(mobile);
-        user.setWeixinOpenid(openId);
+//        user.setMobile(mobile);
         user.setAvatar("https://yanxuan.nosdn.127.net/80841d741d7fa3073e0ae27bf487339f.jpg?imageView&quality=90&thumbnail=64x64");
         user.setNickname(username);
         user.setGender((byte) 0);
@@ -315,7 +283,7 @@ public class WxAuthController implements WxAuthApi {
         userService.add(user);
 
         // 给新用户发送注册优惠券
-        couponAssignService.assignForRegister(user.getId());
+//        couponAssignService.assignForRegister(user.getId());
 
         // userInfo
         UserInfo userInfo = new UserInfo();
