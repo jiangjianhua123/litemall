@@ -98,7 +98,7 @@ public class ResponseUtil {
     public static Object fail() {
         Map<String, Object> obj = new HashMap<String, Object>();
         obj.put("errno", -1);
-        obj.put("errmsg", "错误");
+        obj.put("errmsg", "ERROR");
         return obj;
     }
 
