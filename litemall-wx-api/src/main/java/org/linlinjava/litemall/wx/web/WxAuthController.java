@@ -264,15 +264,13 @@ public class WxAuthController implements WxAuthApi {
 //            return ResponseUtil.fail(AUTH_CAPTCHA_UNMATCH, "验证码错误");
 //        }
 
-
-
         LitemallUser user = null;
         BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
         String encodedPassword = encoder.encode(password);
         user = new LitemallUser();
         user.setUsername(username);
         user.setPassword(encodedPassword);
-//        user.setMobile(mobile);
+        user.setEmail(email);
         user.setAvatar("https://yanxuan.nosdn.127.net/80841d741d7fa3073e0ae27bf487339f.jpg?imageView&quality=90&thumbnail=64x64");
         user.setNickname(username);
         user.setGender((byte) 0);
