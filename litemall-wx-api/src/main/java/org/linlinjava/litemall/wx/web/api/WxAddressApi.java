@@ -12,15 +12,11 @@ import javax.validation.constraints.NotNull;
 
 
 public interface WxAddressApi {
-    @GetMapping("list")
     Object list(@LoginUser Integer userId);
 
-    @GetMapping("detail")
     Object detail(@LoginUser Integer userId, @NotNull Integer id);
 
-    @PostMapping("save")
     Object save(@LoginUser Integer userId, @RequestBody LitemallAddress address);
 
-    @PostMapping("delete")
     Object delete(@LoginUser Integer userId, @RequestBody LitemallAddress address);
 }

@@ -9,12 +9,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import javax.validation.constraints.NotNull;
 
 public interface WxBrandApi {
-    @GetMapping("list")
     Object list(@RequestParam(defaultValue = "1") Integer page,
                 @RequestParam(defaultValue = "10") Integer limit,
                 @Sort @RequestParam(defaultValue = "add_time") String sort,
                 @Order @RequestParam(defaultValue = "desc") String order);
 
-    @GetMapping("detail")
     Object detail(@NotNull Integer id);
 }
