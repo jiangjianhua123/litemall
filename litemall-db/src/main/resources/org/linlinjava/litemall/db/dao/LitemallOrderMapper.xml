@@ -36,6 +36,8 @@
     <result column="add_time" jdbcType="TIMESTAMP" property="addTime" />
     <result column="update_time" jdbcType="TIMESTAMP" property="updateTime" />
     <result column="deleted" jdbcType="BIT" property="deleted" />
+    <result column="address_2" jdbcType="VARCHAR" property="address2" />
+    <result column="postal_code" jdbcType="VARCHAR" property="postalCode" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <!--
@@ -111,7 +113,8 @@
     id, user_id, order_sn, order_status, consignee, mobile, address, message, goods_price, 
     freight_price, coupon_price, integral_price, groupon_price, order_price, actual_price, 
     pay_id, pay_time, ship_sn, ship_channel, ship_time, refund_amount, refund_type, refund_content, 
-    refund_time, confirm_time, comments, end_time, add_time, update_time, deleted
+    refund_time, confirm_time, comments, end_time, add_time, update_time, deleted, address_2, 
+    postal_code
   </sql>
   <select id="selectByExample" parameterType="org.linlinjava.litemall.db.domain.LitemallOrderExample" resultMap="BaseResultMap">
     <!--
@@ -241,7 +244,8 @@
       ship_time, refund_amount, refund_type, 
       refund_content, refund_time, confirm_time, 
       comments, end_time, add_time, 
-      update_time, deleted)
+      update_time, deleted, address_2, 
+      postal_code)
     values (#{userId,jdbcType=INTEGER}, #{orderSn,jdbcType=VARCHAR}, #{orderStatus,jdbcType=SMALLINT}, 
       #{consignee,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, 
       #{message,jdbcType=VARCHAR}, #{goodsPrice,jdbcType=DECIMAL}, #{freightPrice,jdbcType=DECIMAL}, 
@@ -251,7 +255,8 @@
       #{shipTime,jdbcType=TIMESTAMP}, #{refundAmount,jdbcType=DECIMAL}, #{refundType,jdbcType=VARCHAR}, 
       #{refundContent,jdbcType=VARCHAR}, #{refundTime,jdbcType=TIMESTAMP}, #{confirmTime,jdbcType=TIMESTAMP}, 
       #{comments,jdbcType=SMALLINT}, #{endTime,jdbcType=TIMESTAMP}, #{addTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{deleted,jdbcType=BIT})
+      #{updateTime,jdbcType=TIMESTAMP}, #{deleted,jdbcType=BIT}, #{address2,jdbcType=VARCHAR}, 
+      #{postalCode,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="org.linlinjava.litemall.db.domain.LitemallOrder">
     <!--
@@ -350,6 +355,12 @@
       <if test="deleted != null">
         deleted,
       </if>
+      <if test="address2 != null">
+        address_2,
+      </if>
+      <if test="postalCode != null">
+        postal_code,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="userId != null">
@@ -438,6 +449,12 @@
       </if>
       <if test="deleted != null">
         #{deleted,jdbcType=BIT},
+      </if>
+      <if test="address2 != null">
+        #{address2,jdbcType=VARCHAR},
+      </if>
+      <if test="postalCode != null">
+        #{postalCode,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -548,6 +565,12 @@
       <if test="record.deleted != null">
         deleted = #{record.deleted,jdbcType=BIT},
       </if>
+      <if test="record.address2 != null">
+        address_2 = #{record.address2,jdbcType=VARCHAR},
+      </if>
+      <if test="record.postalCode != null">
+        postal_code = #{record.postalCode,jdbcType=VARCHAR},
+      </if>
     </set>
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
@@ -588,7 +611,9 @@
       end_time = #{record.endTime,jdbcType=TIMESTAMP},
       add_time = #{record.addTime,jdbcType=TIMESTAMP},
       update_time = #{record.updateTime,jdbcType=TIMESTAMP},
-      deleted = #{record.deleted,jdbcType=BIT}
+      deleted = #{record.deleted,jdbcType=BIT},
+      address_2 = #{record.address2,jdbcType=VARCHAR},
+      postal_code = #{record.postalCode,jdbcType=VARCHAR}
     <if test="_parameter != null">
       <include refid="Update_By_Example_Where_Clause" />
     </if>
@@ -687,6 +712,12 @@
       <if test="deleted != null">
         deleted = #{deleted,jdbcType=BIT},
       </if>
+      <if test="address2 != null">
+        address_2 = #{address2,jdbcType=VARCHAR},
+      </if>
+      <if test="postalCode != null">
+        postal_code = #{postalCode,jdbcType=VARCHAR},
+      </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
@@ -724,7 +755,9 @@
       end_time = #{endTime,jdbcType=TIMESTAMP},
       add_time = #{addTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      deleted = #{deleted,jdbcType=BIT}
+      deleted = #{deleted,jdbcType=BIT},
+      address_2 = #{address2,jdbcType=VARCHAR},
+      postal_code = #{postalCode,jdbcType=VARCHAR}
     where id = #{id,jdbcType=INTEGER}
   </update>
   <select id="selectOneByExample" parameterType="org.linlinjava.litemall.db.domain.LitemallOrderExample" resultMap="BaseResultMap">
