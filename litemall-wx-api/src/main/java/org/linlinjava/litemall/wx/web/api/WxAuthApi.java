@@ -1,12 +1,11 @@
 package org.linlinjava.litemall.wx.web.api;
 
-import io.swagger.annotations.Api;
 import org.linlinjava.litemall.wx.annotation.LoginUser;
+import org.linlinjava.litemall.wx.dto.CaptchaEmail;
+import org.linlinjava.litemall.wx.dto.UserRegisterDTO;
 import org.linlinjava.litemall.wx.dto.WxLoginInfo;
-import org.linlinjava.litemall.wx.web.model.UserRegisterDTO;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -33,4 +32,8 @@ public interface WxAuthApi {
     Object logout(@LoginUser Integer userId);
 
     Object info(@LoginUser Integer userId);
+
+    Object sendMessageByEmail(@RequestParam String email);
+
+    Object resetPassword(@RequestBody CaptchaEmail captchaEmail);
 }

@@ -44,6 +44,36 @@ public class CaptchaCodeManager {
     }
 
     /**
+     * 添加到缓存
+     *
+     * @param key
+     * @param code        验证码
+     */
+    public static boolean addToCache(String key, String code,int expireMinutes) {
+
+
+        //已经发过验证码且验证码还未过期
+        if (captchaCodeCache.get(key) != null) {
+            if (captchaCodeCache.get(key).getExpireTime().isAfter(LocalDateTime.now())) {
+                return false;
+            } else {
+                //存在但是已过期，删掉
+                captchaCodeCache.remove(key);
+            }
+        }
+
+        CaptchaItem captchaItem = new CaptchaItem();
+        captchaItem.setPhoneNumber(key);
+        captchaItem.setCode(code);
+        // 有效期为1分钟
+        captchaItem.setExpireTime(LocalDateTime.now().plusMinutes(expireMinutes));
+
+        captchaCodeCache.put(key, captchaItem);
+
+        return true;
+    }
+
+    /**
      * 获取缓存的验证码
      *
      * @param phoneNumber 关联的电话号码

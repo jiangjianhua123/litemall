@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.notify.NotifyService;
 import org.linlinjava.litemall.core.notify.NotifyType;
+import org.linlinjava.litemall.core.storage.RedisService;
 import org.linlinjava.litemall.core.util.CharUtil;
 import org.linlinjava.litemall.core.util.JacksonUtil;
 import org.linlinjava.litemall.core.util.RegexUtil;
@@ -17,13 +18,14 @@ import org.linlinjava.litemall.db.domain.LitemallUser;
 import org.linlinjava.litemall.db.service.CouponAssignService;
 import org.linlinjava.litemall.db.service.LitemallUserService;
 import org.linlinjava.litemall.wx.annotation.LoginUser;
+import org.linlinjava.litemall.wx.dto.CaptchaEmail;
 import org.linlinjava.litemall.wx.dto.UserInfo;
 import org.linlinjava.litemall.wx.dto.WxLoginInfo;
 import org.linlinjava.litemall.wx.service.CaptchaCodeManager;
 import org.linlinjava.litemall.wx.service.UserTokenManager;
 import org.linlinjava.litemall.core.util.IpUtil;
 import org.linlinjava.litemall.wx.web.api.WxAuthApi;
-import org.linlinjava.litemall.wx.web.model.UserRegisterDTO;
+import org.linlinjava.litemall.wx.dto.UserRegisterDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -31,9 +33,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.linlinjava.litemall.wx.util.WxResponseCode.*;
 
@@ -58,6 +58,9 @@ public class WxAuthController implements WxAuthApi {
 
     @Autowired
     private CouponAssignService couponAssignService;
+
+    @Autowired
+    private RedisService redisService;
 
     /**
      * 账号登录
@@ -119,7 +122,7 @@ public class WxAuthController implements WxAuthApi {
      * @return 登录结果
      */
     @Override
-    @PostMapping("login_by_weixin")
+//    @PostMapping("login_by_weixin")
     public Object loginByWeixin(@RequestBody WxLoginInfo wxLoginInfo, HttpServletRequest request) {
         String code = wxLoginInfo.getCode();
         UserInfo userInfo = wxLoginInfo.getUserInfo();
@@ -181,7 +184,7 @@ public class WxAuthController implements WxAuthApi {
 
     /**
      * 请求注册验证码
-     *
+     * <p>
      * TODO
      * 这里需要一定机制防止短信验证码被滥用
      *
@@ -189,7 +192,7 @@ public class WxAuthController implements WxAuthApi {
      * @return
      */
     @Override
-    @PostMapping("regCaptcha")
+//    @PostMapping("regCaptcha")
     public Object registerCaptcha(@RequestBody String body) {
         String phoneNumber = JacksonUtil.parseString(body, "mobile");
         if (StringUtils.isEmpty(phoneNumber)) {
@@ -216,8 +219,8 @@ public class WxAuthController implements WxAuthApi {
     /**
      * 账号注册
      *
-     * @param userRegisterDTO    请求内容
-     * @param request 请求对象
+     * @param userRegisterDTO 请求内容
+     * @param request         请求对象
      * @return 登录结果
      * 成功则
      * {
@@ -253,7 +256,7 @@ public class WxAuthController implements WxAuthApi {
 
         userList = userService.queryByEmail(email);
         if (userList.size() > 0) {
-            return ResponseUtil.fail(AUTH_MOBILE_REGISTERED, "email already exists");
+            return ResponseUtil.fail(AUTH_EMAIL_REGISTERED, "email already exists");
         }
 //        if (!RegexUtil.isMobileExact(mobile)) {
 //            return ResponseUtil.fail(AUTH_INVALID_MOBILE, "手机号格式不正确");
@@ -290,7 +293,7 @@ public class WxAuthController implements WxAuthApi {
 
         // token
         String token = UserTokenManager.generateToken(user.getId());
-        
+
         Map<Object, Object> result = new HashMap<Object, Object>();
         result.put("token", token);
         result.put("userInfo", userInfo);
@@ -300,7 +303,7 @@ public class WxAuthController implements WxAuthApi {
 
     /**
      * 请求验证码
-     *
+     * <p>
      * TODO
      * 这里需要一定机制防止短信验证码被滥用
      *
@@ -308,9 +311,9 @@ public class WxAuthController implements WxAuthApi {
      * @return
      */
     @Override
-    @PostMapping("captcha")
+//    @PostMapping("captcha")
     public Object captcha(@LoginUser Integer userId, @RequestBody String body) {
-        if(userId == null){
+        if (userId == null) {
             return ResponseUtil.unlogin();
         }
         String phoneNumber = JacksonUtil.parseString(body, "mobile");
@@ -340,6 +343,76 @@ public class WxAuthController implements WxAuthApi {
 
         return ResponseUtil.ok();
     }
+
+
+    /**
+     * @param email 需要账户注册的email
+     * @return
+     */
+    @GetMapping("sendMessageByEmail")
+    public Object sendMessageByEmail(@RequestParam String email) {
+        List<LitemallUser> userList = userService.queryByEmail(email);
+        //没有找到相关邮箱
+//        if (CollectionUtils.isEmpty(userList)) {
+//            return ResponseUtil.fail(AUTH_EMAIL_REGISTERED, "email is not exists");
+//        }
+
+        String content = "<p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">Hi %s,<br/></p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; &nbsp;<br/></p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; You are resetting your password.Use the following code:&nbsp;</p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; &nbsp;<strong>%S</strong></p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; The code is valid for 10 minutes.</p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; &nbsp;If it&#39;s not a request you sent, please ignore it.&nbsp;</p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; &nbsp;If you think there is a safety problem, please contact us.</p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp;</p><p><br/></p>";
+        String sid = UUID.randomUUID().toString().replaceAll("-", "");
+        String code = CharUtil.getRandomNum(6);
+        // TODO
+        String cachedCaptcha = CaptchaCodeManager.getCachedCaptcha(email);
+        if(org.apache.commons.lang3.StringUtils.isNotBlank(cachedCaptcha)){
+            code = cachedCaptcha;
+        }
+        boolean successful = CaptchaCodeManager.addToCache(email, code,10);
+        if (successful) {
+            if(notifyService.sendHtmlMail("Reset Password", String.format(content, email, sid), new String[]{email})){
+                return ResponseUtil.ok();
+            }
+        }
+        return ResponseUtil.fail();
+    }
+
+    @PostMapping("resetPassword")
+    @Override
+    public Object resetPassword(@RequestBody CaptchaEmail captchaEmail) {
+//        String password = JacksonUtil.parseString(body, "password");
+//        String mobile = JacksonUtil.parseString(body, "mobile");
+//        String code = JacksonUtil.parseString(body, "code");
+
+//        if (mobile == null || code == null || password == null) {
+//            return ResponseUtil.badArgument();
+//        }
+
+        //判断验证码是否正确
+        String cacheCode = CaptchaCodeManager.getCachedCaptcha(captchaEmail.getEmail());
+
+        if (cacheCode == null || cacheCode.isEmpty() || !cacheCode.equals(captchaEmail.getCode()))
+            return ResponseUtil.fail(AUTH_CAPTCHA_UNMATCH, "Code is ERROR");
+
+        List<LitemallUser> userList = userService.queryByEmail(captchaEmail.getEmail());
+        LitemallUser user = null;
+        if (userList.size() > 1) {
+            return ResponseUtil.serious();
+        } else if (userList.size() == 0) {
+            return ResponseUtil.fail(AUTH_EMAIL_UNREGISTERED, "Email unregistered");
+        } else {
+            user = userList.get(0);
+        }
+
+        BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+        String encodedPassword = encoder.encode(captchaEmail.getPassword());
+        user.setPassword(encodedPassword);
+
+        if (userService.updateById(user) == 0) {
+            return ResponseUtil.updatedDataFailed();
+        }
+
+        return ResponseUtil.ok();
+    }
+
+
 
     /**
      * 账号密码重置
@@ -393,6 +466,7 @@ public class WxAuthController implements WxAuthApi {
         return ResponseUtil.ok();
     }
 
+
     /**
      * 账号手机号码重置
      *
@@ -409,9 +483,9 @@ public class WxAuthController implements WxAuthApi {
      * 失败则 { errno: XXX, errmsg: XXX }
      */
     @Override
-    @PostMapping("resetPhone")
+//    @PostMapping("resetPhone")
     public Object resetPhone(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
-        if(userId == null){
+        if (userId == null) {
             return ResponseUtil.unlogin();
         }
         String password = JacksonUtil.parseString(body, "password");
@@ -465,7 +539,7 @@ public class WxAuthController implements WxAuthApi {
     @Override
     @PostMapping("profile")
     public Object profile(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
-        if(userId == null){
+        if (userId == null) {
             return ResponseUtil.unlogin();
         }
         String avatar = JacksonUtil.parseString(body, "avatar");
@@ -473,13 +547,13 @@ public class WxAuthController implements WxAuthApi {
         String nickname = JacksonUtil.parseString(body, "nickname");
 
         LitemallUser user = userService.findById(userId);
-        if(!StringUtils.isEmpty(avatar)){
+        if (!StringUtils.isEmpty(avatar)) {
             user.setAvatar(avatar);
         }
-        if(gender != null){
+        if (gender != null) {
             user.setGender(gender);
         }
-        if(!StringUtils.isEmpty(nickname)){
+        if (!StringUtils.isEmpty(nickname)) {
             user.setNickname(nickname);
         }
 
@@ -498,12 +572,12 @@ public class WxAuthController implements WxAuthApi {
      * @return
      */
     @Override
-    @PostMapping("bindPhone")
+//    @PostMapping("bindPhone")
     public Object bindPhone(@LoginUser Integer userId, @RequestBody String body) {
-    	if (userId == null) {
+        if (userId == null) {
             return ResponseUtil.unlogin();
         }
-    	LitemallUser user = userService.findById(userId);
+        LitemallUser user = userService.findById(userId);
         String encryptedData = JacksonUtil.parseString(body, "encryptedData");
         String iv = JacksonUtil.parseString(body, "iv");
         WxMaPhoneNumberInfo phoneNumberInfo = this.wxService.getUserService().getPhoneNoInfo(user.getSessionKey(), encryptedData, iv);
@@ -537,6 +611,7 @@ public class WxAuthController implements WxAuthApi {
         data.put("avatar", user.getAvatar());
         data.put("gender", user.getGender());
         data.put("mobile", user.getMobile());
+        data.put("email", user.getEmail());
 
         return ResponseUtil.ok(data);
     }

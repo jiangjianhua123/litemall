@@ -11,6 +11,9 @@ public class WxResponseCode {
     public static final Integer AUTH_INVALID_MOBILE = 707;
     public static final Integer AUTH_OPENID_UNACCESS = 708;
     public static final Integer AUTH_OPENID_BINDED = 709;
+    public static final Integer AUTH_EMAIL_REGISTERED = 1705;
+    public static final Integer AUTH_EMAIL_UNREGISTERED = 1706;
+
 
     public static final Integer GOODS_UNSHELVE = 710;
     public static final Integer GOODS_NO_STOCK = 711;

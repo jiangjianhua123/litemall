@@ -1,4 +1,4 @@
-package org.linlinjava.litemall.wx.web.model;
+package org.linlinjava.litemall.wx.dto;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -6,8 +6,6 @@ import lombok.Data;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 
 @Data
 @ApiModel("user register model")
