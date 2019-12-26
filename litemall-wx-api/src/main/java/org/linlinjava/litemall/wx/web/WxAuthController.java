@@ -27,6 +27,7 @@ import org.linlinjava.litemall.core.util.IpUtil;
 import org.linlinjava.litemall.wx.web.api.WxAuthApi;
 import org.linlinjava.litemall.wx.dto.UserRegisterDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -353,12 +354,12 @@ public class WxAuthController implements WxAuthApi {
     public Object sendMessageByEmail(@RequestParam String email) {
         List<LitemallUser> userList = userService.queryByEmail(email);
         //没有找到相关邮箱
-//        if (CollectionUtils.isEmpty(userList)) {
-//            return ResponseUtil.fail(AUTH_EMAIL_REGISTERED, "email is not exists");
-//        }
+        if (CollectionUtils.isEmpty(userList)) {
+            return ResponseUtil.fail(AUTH_EMAIL_REGISTERED, "email is not exists");
+        }
 
         String content = "<p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">Hi %s,<br/></p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; &nbsp;<br/></p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; You are resetting your password.Use the following code:&nbsp;</p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; &nbsp;<strong>%S</strong></p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; The code is valid for 10 minutes.</p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; &nbsp;If it&#39;s not a request you sent, please ignore it.&nbsp;</p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp; &nbsp; &nbsp; &nbsp;If you think there is a safety problem, please contact us.</p><p style=\"white-space: normal; font-variant-ligatures: normal; orphans: 2; widows: 2;\">&nbsp;</p><p><br/></p>";
-        String sid = UUID.randomUUID().toString().replaceAll("-", "");
+//        String sid = UUID.randomUUID().toString().replaceAll("-", "");
         String code = CharUtil.getRandomNum(6);
         // TODO
         String cachedCaptcha = CaptchaCodeManager.getCachedCaptcha(email);
@@ -367,7 +368,7 @@ public class WxAuthController implements WxAuthApi {
         }
         boolean successful = CaptchaCodeManager.addToCache(email, code,10);
         if (successful) {
-            if(notifyService.sendHtmlMail("Reset Password", String.format(content, email, sid), new String[]{email})){
+            if(notifyService.sendHtmlMail("Reset Password", String.format(content, email, code), new String[]{email})){
                 return ResponseUtil.ok();
             }
         }

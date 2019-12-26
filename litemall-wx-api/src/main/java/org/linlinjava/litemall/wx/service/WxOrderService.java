@@ -380,6 +380,8 @@ public class WxOrderService {
         order.setMessage(message);
         String detailedAddress = checkedAddress.getProvince() + checkedAddress.getCity() + checkedAddress.getCounty() + " " + checkedAddress.getAddressDetail();
         order.setAddress(detailedAddress);
+        order.setAddress2(checkedAddress.getAddressDetail2());
+        order.setPostalCode(checkedAddress.getPostalCode());
         order.setGoodsPrice(checkedGoodsPrice);
         order.setFreightPrice(freightPrice);
         order.setCouponPrice(couponPrice);
@@ -709,7 +711,7 @@ public class WxOrderService {
             List<PurchaseUnitRequest> purchaseUnitRequests = new ArrayList<>();
             PurchaseUnitRequest purchaseUnitRequest = new PurchaseUnitRequest().description("Sporting Goods").customId(order.getOrderSn())
                     .amountWithBreakdown(new AmountWithBreakdown().currencyCode("USD").value(order.getActualPrice().toString()))
-                    .shippingDetail(new ShippingDetail().name(new Name().fullName((order.getConsignee()))).addressPortable(new AddressPortable().addressLine1(order.getAddress()).countryCode("C2")));
+                    .shippingDetail(new ShippingDetail().name(new Name().fullName((order.getConsignee()))).addressPortable(new AddressPortable().addressLine1(order.getAddress()).addressLine2(order.getAddress2()).postalCode(order.getPostalCode()).countryCode("US")));
             purchaseUnitRequests.add(purchaseUnitRequest);
 
             ordersCreateRequest.requestBody(buildMinimumRequestBody(purchaseUnitRequests));
