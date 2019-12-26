@@ -62,6 +62,7 @@ public class NotifyAutoConfiguration {
         mailSender.setUsername(mailConfig.getUsername());
         mailSender.setPassword(mailConfig.getPassword());
         mailSender.setPort(mailConfig.getPort());
+        mailSender.setDefaultEncoding("UTF-8");
         Properties properties = new Properties();
         properties.put("mail.smtp.auth",true);
         properties.put("mail.smtp.timeout",5000);

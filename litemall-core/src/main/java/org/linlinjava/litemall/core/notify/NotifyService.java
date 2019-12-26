@@ -1,9 +1,13 @@
 package org.linlinjava.litemall.core.notify;
 
-import org.springframework.mail.MailSender;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +16,7 @@ import java.util.Map;
  * 商城通知服务类
  */
 public class NotifyService {
-    private MailSender mailSender;
+    private JavaMailSender mailSender;
     private String sendFrom;
     private String sendTo;
 
@@ -141,6 +145,34 @@ public class NotifyService {
         mailSender.send(message);
     }
 
+
+    /**
+     * 发送html
+     *
+     * @param subject
+     * @param content
+     * @param to
+     * @return
+     */
+    @Async
+    public boolean sendHtmlMail(String subject, String content, String[] to) {
+        MimeMessage mimeMailMessage = mailSender.createMimeMessage();
+        MimeMessageHelper mimeMessageHelper = new MimeMessageHelper(mimeMailMessage);
+        try {
+            mimeMessageHelper.setTo(to);
+            mimeMessageHelper.setFrom(sendFrom);
+            mimeMessageHelper.setSubject(subject);
+            mimeMessageHelper.setText(content, true);
+            mailSender.send(mimeMailMessage);
+            System.out.println("邮件发送成功");
+            return true;
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+
     private String getTemplateId(NotifyType notifyType, List<Map<String, String>> values) {
         for (Map<String, String> item : values) {
             String notifyTypeStr = notifyType.getType();
@@ -151,7 +183,7 @@ public class NotifyService {
         return null;
     }
 
-    public void setMailSender(MailSender mailSender) {
+    public void setMailSender(JavaMailSender mailSender) {
         this.mailSender = mailSender;
     }
 
