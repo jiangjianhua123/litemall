@@ -34,8 +34,8 @@ class SystemInistService {
 
     static {
         // 小程序相关配置默认值
-        DEFAULT_CONFIGS.put(SystemConfig.LITEMALL_WX_INDEX_NEW, "6");
-        DEFAULT_CONFIGS.put(SystemConfig.LITEMALL_WX_INDEX_HOT, "6");
+        DEFAULT_CONFIGS.put(SystemConfig.LITEMALL_WX_INDEX_NEW, "16");
+        DEFAULT_CONFIGS.put(SystemConfig.LITEMALL_WX_INDEX_HOT, "16");
         DEFAULT_CONFIGS.put(SystemConfig.LITEMALL_WX_INDEX_BRAND, "4");
         DEFAULT_CONFIGS.put(SystemConfig.LITEMALL_WX_INDEX_TOPIC, "4");
         DEFAULT_CONFIGS.put(SystemConfig.LITEMALL_WX_INDEX_CATLOG_LIST, "4");
