@@ -379,6 +379,7 @@ public class WxOrderService {
         order.setMobile(checkedAddress.getTel());
         order.setMessage(message);
         String detailedAddress = checkedAddress.getProvince() + checkedAddress.getCity() + checkedAddress.getCounty() + " " + checkedAddress.getAddressDetail();
+        order.setCity(checkedAddress.getCity());
         order.setAddress(detailedAddress);
         order.setAddress2(checkedAddress.getAddressDetail2());
         order.setPostalCode(checkedAddress.getPostalCode());
@@ -711,25 +712,21 @@ public class WxOrderService {
             List<PurchaseUnitRequest> purchaseUnitRequests = new ArrayList<>();
             PurchaseUnitRequest purchaseUnitRequest = new PurchaseUnitRequest().description("Sporting Goods").customId(order.getOrderSn())
                     .amountWithBreakdown(new AmountWithBreakdown().currencyCode("USD").value(order.getActualPrice().toString()))
-                    .shippingDetail(new ShippingDetail().name(new Name().fullName((order.getConsignee()))).addressPortable(new AddressPortable().addressLine1(order.getAddress()).addressLine2(order.getAddress2()).postalCode(order.getPostalCode()).countryCode("US")));
+                    .shippingDetail(new ShippingDetail()
+                            .name(new Name().fullName((order.getConsignee())))
+                            .addressPortable(new AddressPortable()
+                                    .addressLine1(order.getAddress())
+                                    .addressLine2(order.getAddress2())
+                                    .adminArea2(order.getCity())
+                                    .postalCode(order.getPostalCode())
+                                    .countryCode("US")));
             purchaseUnitRequests.add(purchaseUnitRequest);
 
             ordersCreateRequest.requestBody(buildMinimumRequestBody(purchaseUnitRequests));
             response = payPalConfig.client().execute(ordersCreateRequest);
             if (response.statusCode() == 201) {
-                logger.debug("Status Code: " + response.statusCode());
-                logger.debug("Status: " + response.result().status());
-                logger.debug("Order ID: " + response.result().id());
-                logger.debug("Intent: " + response.result().checkoutPaymentIntent());
-                logger.debug("Links: ");
-                for (LinkDescription link : response.result().links()) {
-                    logger.debug("\t" + link.rel() + ": " + link.href() + "\tCall Type: " + link.method());
-                }
-                logger.debug("Total Amount: " + response.result().purchaseUnits().get(0).amountWithBreakdown().currencyCode()
-                        + " " + response.result().purchaseUnits().get(0).amountWithBreakdown().value());
-                logger.debug("Full response body:");
-                logger.debug(new JSONObject(new Json().serialize(response.result())).toString(4));
-                logger.debug(ResponseUtil.ok(new Json().serialize(response.result())).toString());
+                logger.debug("Order ID: " + response.result().id() + "   Status: " + response.result().status());
+//                logger.debug(ResponseUtil.ok(new Json().serialize(response.result())).toString());
                 return ResponseUtil.ok(new Json().serialize(response.result()));
             }
         } catch (IOException e) {
