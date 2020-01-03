@@ -1,6 +1,7 @@
 package org.linlinjava.litemall.wx.web;
 
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.linlinjava.litemall.core.validator.Order;
@@ -34,6 +35,7 @@ public class WxOrderController {
      * @param limit    分页大小
      * @return 订单列表
      */
+    @ApiOperation(value = "订单列表")
     @GetMapping("list")
     public Object list(@LoginUser Integer userId,
                        @RequestParam(defaultValue = "0") Integer showType,
@@ -51,6 +53,7 @@ public class WxOrderController {
      * @param orderId 订单ID
      * @return 订单详情
      */
+    @ApiOperation(value = "订单详情")
     @GetMapping("detail")
     public Object detail(@LoginUser Integer userId, @NotNull Integer orderId) {
         return wxOrderService.detail(userId, orderId);
@@ -63,6 +66,7 @@ public class WxOrderController {
      * @param body   订单信息，{ cartId：xxx, addressId: xxx, couponId: xxx, message: xxx, grouponRulesId: xxx,  grouponLinkId: xxx}
      * @return 提交订单操作结果
      */
+    @ApiOperation("下单")
     @PostMapping("submit")
     public Object submit(@LoginUser Integer userId, @RequestBody String body) {
         return wxOrderService.submit(userId, body);
@@ -75,6 +79,7 @@ public class WxOrderController {
      * @param body   订单信息，{ orderId：xxx }
      * @return 取消订单操作结果
      */
+    @ApiOperation("取消订单")
     @PostMapping("cancel")
     public Object cancel(@LoginUser Integer userId, @RequestBody String body) {
         return wxOrderService.cancel(userId, body);
@@ -101,6 +106,7 @@ public class WxOrderController {
      * @param request
      * @return
      */
+    @ApiOperation("PayPal支付")
     @PostMapping("payPalPay")
     public Object paypalpay(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
         return wxOrderService.payPalPay(userId, body, request);
@@ -126,7 +132,7 @@ public class WxOrderController {
      * @param request
      * @return
      */
-    @PostMapping("h5pay")
+//    @PostMapping("h5pay")
     public Object h5pay(@LoginUser Integer userId, @RequestBody String body, HttpServletRequest request) {
         return wxOrderService.h5pay(userId, body, request);
     }
@@ -141,7 +147,7 @@ public class WxOrderController {
      * @param response 响应内容
      * @return 操作结果
      */
-    @PostMapping("pay-notify")
+//    @PostMapping("pay-notify")
     public Object payNotify(HttpServletRequest request, HttpServletResponse response) {
         return wxOrderService.payNotify(request, response);
     }
@@ -153,6 +159,7 @@ public class WxOrderController {
      * @param body   订单信息，{ orderId：xxx }
      * @return 订单退款操作结果
      */
+    @ApiOperation("申请退款")
     @PostMapping("refund")
     public Object refund(@LoginUser Integer userId, @RequestBody String body) {
         return wxOrderService.refund(userId, body);
@@ -165,6 +172,7 @@ public class WxOrderController {
      * @param body   订单信息，{ orderId：xxx }
      * @return 订单操作结果
      */
+    @ApiOperation("确认收货")
     @PostMapping("confirm")
     public Object confirm(@LoginUser Integer userId, @RequestBody String body) {
         return wxOrderService.confirm(userId, body);
@@ -177,6 +185,7 @@ public class WxOrderController {
      * @param body   订单信息，{ orderId：xxx }
      * @return 订单操作结果
      */
+    @ApiOperation("删除订单")
     @PostMapping("delete")
     public Object delete(@LoginUser Integer userId, @RequestBody String body) {
         return wxOrderService.delete(userId, body);
@@ -190,6 +199,7 @@ public class WxOrderController {
      * @param goodsId 商品ID
      * @return 待评价订单商品信息
      */
+    @ApiOperation("待评价订单商品信息")
     @GetMapping("goods")
     public Object goods(@LoginUser Integer userId,
                         @NotNull Integer orderId,
@@ -204,6 +214,7 @@ public class WxOrderController {
      * @param body   订单信息，{ orderId：xxx }
      * @return 订单操作结果
      */
+    @ApiOperation("评价订单商品")
     @PostMapping("comment")
     public Object comment(@LoginUser Integer userId, @RequestBody String body) {
         return wxOrderService.comment(userId, body);
