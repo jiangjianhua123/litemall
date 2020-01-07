@@ -74,12 +74,21 @@ public class WxAuthController implements WxAuthApi {
     @PostMapping("login")
     public Object login(@RequestBody String body, HttpServletRequest request) {
         String username = JacksonUtil.parseString(body, "username");
+        String email = JacksonUtil.parseString(body,"email");
         String password = JacksonUtil.parseString(body, "password");
-        if (username == null || password == null) {
+        if ( password == null) {
+            return ResponseUtil.badArgument();
+        }
+        if( username == null && email == null){
             return ResponseUtil.badArgument();
         }
 
-        List<LitemallUser> userList = userService.queryByUsername(username);
+        List<LitemallUser> userList = null;
+        if(org.apache.commons.lang3.StringUtils.isNotBlank(username)) {
+            userList = userService.queryByUsername(username);
+        }else{
+            userList = userService.queryByEmail(email);
+        }
         LitemallUser user = null;
         if (userList.size() > 1) {
             return ResponseUtil.serious();
