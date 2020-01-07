@@ -83,9 +83,9 @@ public class WxAddressController implements WxAddressApi {
 		if (StringUtils.isEmpty(mobile)) {
 			return ResponseUtil.badArgument();
 		}
-		if (!RegexUtil.isMobileExact(mobile)) {
-			return ResponseUtil.badArgument();
-		}
+//		if (!RegexUtil.isMobileExact(mobile)) {
+//			return ResponseUtil.badArgument();
+//		}
 
 		String province = address.getProvince();
 		if (StringUtils.isEmpty(province)) {
